@@ -11,6 +11,7 @@ ohioDF <- ohioDF %>%
   filter(Sex != "Total")
 
 tail(ohioDF)
+head(ohioDF)
 
 # need to get date function
 library(lubridate)
