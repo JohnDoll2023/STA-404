@@ -1,4 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-*.Rmd linguistic-language=R
-*.html linguistic-language=R
+*.Rmd linguist-language=R
+*.html linguist-language=R
