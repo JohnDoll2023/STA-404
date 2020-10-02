@@ -1,0 +1,71 @@
+---
+title: "Module 4"
+author: "John Doll"
+date: "9/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+library(tidyverse)
+library(gcookbook)
+```
+# 1
+
+The two things that stand out the most in this plot are hue and size. The size of the circles represent how many workers are in that industry, regardless of gender, which lets us viewers know how popular the occupation is. The hue shows us if the job is more strongly leaning towards male (orange) or female (blue). The spatial position does the same thing for us in letting us know whether or not the career is a larger amount of men (left) or a larger amount of women (right). The shape of the objects representing the occupation are circles which, as previously mentioned, change in size and hue to represent the workers behind the occupation.
+
+I like the use of color in this display. The background is white, with just singular very thin light gray bars representing the percentage of female workers. The orange for males and light blue for females are easily distinguishable and also visually pleasing. The gray in the center for occupations that are more mixed in terms of gender is also pleasant. No color of circle seems to be dominant over another or leaving another color "blocked out" or in the background.
+
+# 2
+
+#### 0
+```{r}
+myDiamonds <- diamonds %>%
+  mutate(Gcarat = cut(carat, breaks = seq(from = 0, to = 3.5, by = .25)))
+```
+
+#### 1
+```{r}
+ggplot(data = myDiamonds, aes(x = cut, fill = cut)) +
+  geom_bar() +
+  guides(fill = FALSE) +
+  labs(x = "Cut", y = "Count") +
+  scale_fill_brewer(palette = "Blues") +
+  theme_classic()
+```
+
+#### 2
+```{r}
+ggplot(data = myDiamonds, aes(x = cut, fill = cut)) +
+  geom_bar() +
+  coord_flip() +
+  guides(fill = FALSE) +
+  labs(x = "Count", y = "Cut") +
+  scale_fill_brewer(palette = "Blues") +
+  theme_classic()
+```
+
+#### 3
+```{r}
+diamondCut <- myDiamonds %>% 
+  group_by(cut) %>% 
+  summarize(count = n())
+
+ggplot(diamondCut, aes(x = "", y = count, fill=cut)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  scale_fill_brewer(palette = "Blues") +
+  coord_polar("y", start = 0)
+```
+
+#### 4
+```{r}
+ggplot(data = myDiamonds, aes(x = cut, fill = Gcarat)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Cut", y = "Count") +
+  scale_fill_viridis_d() +
+  theme_classic()
+```
+
+#### 5
+
+It would appear that with a higher cut quality, there is a smaller diamond size (carat) associated with this change. The better the quality of the diamond, the large the proportion of diamonds in the lower carat range, and the smaller the proportion of diamonds in the highest carat range.

@@ -1,0 +1,53 @@
+---
+title: "Module 3 Homework"
+author: "John Doll"
+date: "9/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+library(gapminder)
+library(tidyverse)
+```
+
+### 1.A Comparisons
+
+This graph does show comparisons as we can see the previous data for gas prices going back over ten years. Since they are all graphed on the same bar graph with a great y-axis scale and labeling, it easy to compare the gas prices across time.
+
+### 1.B Casualty, Mechanism, Structure, Explanation
+
+This graph does not really show explanation as to the varying gas prices from year to year over Labor Day weekend. We know that the prices generally rise during Labor Day weekend, but why they rise higher in some years and not so much in others is unknown from this data depiction.
+
+### 1.C Multivariate Analysis
+
+This graph is not a multivariate because it only shows two variables - price and year.
+
+### 1.D Integration of Evidence
+
+To integrate the data on this graph, the author created an x (representing years) and y (representing price) axis with horizontal lines going across at every 50 cent price marker. On top of this outlined graph, the author then overlays a blue bar for each year to represent the price of gas for that Labor Day weekend for Ohio. The author then points out the price in the then current year of 2017 with a text box hovering above the final bar. The author titles his graph, and provides a caption which highlights what this year's result is in terms of price of a gallon of gasoline.
+
+### 1.E Documentation
+
+The documentation of this graph uses a trustworthy source, the U.S. Energy Information Administration. This information is likely not to be biased, and to also be accurate. Also the title is clear, and the caption beneath it is also straight forward and in no way confusing to a viewer. The scales are easily readable and are not up to question as to what they may be measuring.
+
+### 1.F Content Counts Most of All
+
+This graph does a great job of showing the data neatly and easily for the viewer to understand in a way that is not deceptive or untrue.
+
+### 2
+
+```{r, warning = FALSE}
+gap2007 <- gapminder %>%
+  filter(year == 2007) %>%
+  select(c(continent, gdpPercap, lifeExp))
+
+ggplot(data = gap2007, aes(x=gdpPercap, y=lifeExp)) +
+  geom_point(aes(color=continent)) +
+  geom_smooth(method="loess", se=FALSE)  +
+  geom_smooth(aes(color=continent), method="loess", se=FALSE, span = 1) +
+  labs(x = "GDP Per Capita", y = "Life Expectancy") +
+  annotate("text", x = 20000, y = 72, label = "Global Curve")
+```
+
+The inclusion of the curves does improve the story because you can get a better look at how the data is moving across the graph for each continent and for the world as a whole. Additionally, this helps us compare between continents to see how one continent stacks up against another. Looking at the overall world curve, we can see that the in general, an increase in GDP Per Capita relates to an increase in Life Expectancy.

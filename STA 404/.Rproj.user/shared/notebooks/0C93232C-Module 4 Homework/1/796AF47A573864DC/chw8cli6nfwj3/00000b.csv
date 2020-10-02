@@ -1,0 +1,9 @@
+"0","ggplot(data = myDiamonds, aes(x = """", y = cut, fill = cut)) +
+  geom_bar(stat = ""identity"") +
+  coord_polar(""y"", start = 0) +
+  guides(fill = FALSE) +
+  theme_classic()
+"
+"2","Error in .Internal(quit(save, status, runLast)) : 
+  QuartzBitmap_Output - unable to open file '/Users/johndoll/Sophomore Year/STA 404/STA 404/.Rproj.user/shared/notebooks/0C93232C-Module 4 Homework/1/796AF47A573864DC/chw8cli6nfwj3_t/_rs_chunk_plot_001.png'
+"

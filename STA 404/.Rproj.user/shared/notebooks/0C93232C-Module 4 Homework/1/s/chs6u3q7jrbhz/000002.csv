@@ -1,0 +1,8 @@
+"0","ggplot(data = myDiamonds, aes(x = cut, fill = cut)) +
+  geom_bar() +
+  guides(fill = FALSE) +
+  theme_classic()
+"
+"2","Error in ggplot(data = myDiamonds, aes(x = cut, fill = cut)) : 
+  object 'myDiamonds' not found
+"

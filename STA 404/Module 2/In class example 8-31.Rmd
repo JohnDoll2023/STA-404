@@ -1,0 +1,23 @@
+---
+title: "In Class Example 8-31"
+author: "John Doll"
+date: "8/31/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(gapminder)
+library(tidyverse)
+```
+
+```{r}
+gapminder2 <- gapminder %>%
+  filter(year == 2007)
+
+ggplot(data = gapminder2, aes(x = pop, y = gdpPercap)) +
+  geom_point() +
+  labs(x = "Population Size", y = "GDP Per Capita (in US Dollars)") +
+  scale_x_log10() +
+  scale_y_log10()
+```

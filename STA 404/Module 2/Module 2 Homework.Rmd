@@ -1,0 +1,92 @@
+---
+title: "Module 2 Homework"
+author: "John Doll"
+date: "8/27/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gapminder)
+```
+# 0. Short Answer
+
+#### A. Why are dynamite plots viewed as poor representations of distributions?
+There are several reasons they are viewed poorly. For one, they are mistakenly identified as bar plots because how closely they resemble each other. Dynamite plots also do not make great use of the given space and could be shown much more efficiently in a different manner. Additionally, the information given is not backed up by anything. What I mean by that is that you are unable to tell how the values on the graph relate to the data set since minimal information is conveyed. Another thing is that the standard deviations represented by the whiskers on top of the bars can be misleading and cause you to think the bars are actually taller or represent more than they are suppose to. A more effective plot would be dot plot distribution since it shows the data points, allowing you to see a more in-depth description of the how the distribution is laid out.
+
+Information from "Beware of Dynamite" by Tatsuki Koyama.
+
+#### B. Give an example of using preattentive processing ideas when designing a data display.
+
+```{r, echo = FALSE}
+rwanda_japan <- gapminder %>% 
+  filter(country %in% c("Rwanda", "Japan"))
+ggplot() + 
+  geom_line(data=gapminder, aes(x=year, y=lifeExp, group=country), color="lightgrey") +
+  geom_line(data=rwanda_japan, aes(year,lifeExp, color=country), lwd=1.1) +
+  theme_minimal()
+```
+
+<br>
+When we created the data in class comparing the Average Life Expectancy of every country in the world, we did this with Japan and Rwanda. We made a line graph with every single country on it showing each country's life expectancy from 1950 to 2010. To make Rwanda and Japan pop out, we made Japan's line the color red and we made Rwanda's line the color blue, while all the rest were the color gray. This made those two countries be the first thing you noticed when you took a glance at the graph.
+<br>
+
+#### C. When reading graphs, about how many hues, orientations and sizes can we perceive?
+Taken directly from "Show Me The Numbers" by Stephen Few, we can see about "eight different hues, about four different orientations, and about four different sizes."
+<br>
+
+# 1. Article summary from Josh Katz
+
+The target audience for this article is educated American adults who do not take take drugs. We can infer this from the use of sophisticated terminology, and in depth explanations. Nowhere in the article does it tell its readers to stop taking drugs or refrain from using drugs, it just explains what has been happening recently for drug users in America. Furthermore, based on the last paragraph regarding Trump's administration decisions regarding drug deaths, we could also gather that this article is aimed at voters (adults). The article likely wants a push in voters to get more stringent laws and crackdowns on drugs, specifically fentanyl. It does this by showing graphs which compare fentanyl deaths to other drug deaths in America over the same time span, showing a massive increase in the fentanyl category. It also shows a graph comparing drug overdose deaths in 2016 compared to all-time highs in deaths for a year from guns, HIV deaths, car crash deaths, with overdose deaths topping the chart.
+<br>
+
+# 2. Generate Graphs from Gapminder
+
+```{r}
+#Creating an object from gapminder with specified attributes
+gapminder2 <- gapminder %>%
+  filter(year == 2007) %>%
+  group_by() %>%
+  select(c(continent, gdpPercap))
+```
+
+#### A. Boxplots
+
+```{r}
+ggplot(data = gapminder2, aes(x = continent, y = gdpPercap)) +
+  geom_boxplot(size = .5) +
+  labs(x = "Continent", y = "GDP Per Capita (in US Dollars)") +
+  geom_jitter(alpha = .75, width = .1)
+```
+
+#### B. Histograms
+
+```{r}
+ggplot(gapminder2) +
+  geom_histogram(aes(x = gdpPercap), binwidth = 5000) +
+  labs(x = "Continent", y = "GDP Per Capita (in US Dollars)") +
+  facet_grid(continent ~ .) +
+  theme_bw()
+```
+
+#### C. Density Plots
+
+```{r}
+ggplot(gapminder2) +
+  geom_density(aes(x = gdpPercap, fill = continent), alpha = .3) +
+  labs(x = "Continent", y = "GDP Per Capita")
+```
+
+#### D. Violin Plots
+
+```{r}
+ggplot(data = gapminder2, aes(x = continent, y = gdpPercap)) +
+  geom_violin() +
+  labs(x = "Continent", y = "GDP Per Capita (in US Dollars)") +
+  geom_jitter(alpha = .75, width = .1)
+```
+<br>
+While I, in general, like all the displays except the histogram, I think I prefer the boxplot under section A. First, I want to say that I don't like the histogram for how "un-interesting" the data feels. Yes, you can see a big spike in the lower GDP location for Africa, but for the rest of the continents, nothing really jumps out at you. The graph feels boring, even though it does correctly and easily display the data. I think if there were not over 30 values for Africa in the first spot, the y-axis scale could be larger, revealing what would probably appear to be a more interesting view of the data. As for the density and violin plots, both display the data well, the violin plot a little more clearly than the density plot. To me, the density plot is much more pleasing to look at it, as you can see quickly how the distributions change. Unfortunately, with density plots the values overlap and so towards the bottom of the y - axis, things can get a little messy. The violin plots do a much better job of showing density and also the GDP values at the same time, with no overlap. Additionally, you can actually see the data points, which give you a better grasp of what the data looks like. That being said, there is no violin plot for Oceania because it only has two points, which can confuse the graph reader. I prefer the box plot the best because not only does it show the data points for each continent, and without overlapping each other, but it also shows the median and quartiles for the data. This graph gives the most bang for our buck in the simplest way. It is extremely easy to compare the distributions, and see what is causing a distribution to skew one way or another. For these reasons, the box plot is my favorite of the four given.

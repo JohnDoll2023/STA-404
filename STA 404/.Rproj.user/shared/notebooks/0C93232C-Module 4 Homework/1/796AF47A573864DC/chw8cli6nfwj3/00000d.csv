@@ -1,0 +1,7 @@
+"2","Warning in gzfile(file, ""wb"") :"
+"2","
+ "
+"2"," cannot open compressed file '/Users/johndoll/Sophomore Year/STA 404/STA 404/.Rproj.user/shared/notebooks/0C93232C-Module 4 Homework/1/796AF47A573864DC/chw8cli6nfwj3_t/35a3610814f34315880ac2da9e132703.snapshot', probable reason 'No such file or directory'
+"
+"2","Error in gzfile(file, ""wb"") : cannot open the connection
+"
