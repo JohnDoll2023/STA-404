@@ -4,6 +4,7 @@ author: "John Doll"
 date: "9/30/2020"
 output:
   pdf_document: default
+  word_document: default
   html_document: default
 ---
 
@@ -53,7 +54,7 @@ ggplot() +
   annotate(geom = "text", x = date("2020-08-25"), y = 125, label = "Butler County")
 ```
 
-It is interesting to see the massive spike in April due to the addition of "Probable Cases" to the total number of cases. The graph shows a curious curve that rises and falls across the year. It is also interesting to see the massive Butler county case spike as students returned to Oxford.
+It is interesting to see the massive spike in April due to the Marion county jail outbreak. The graph shows a curious curve that rises and falls across the year. It is also interesting to see the massive Butler county case spike as students returned to Oxford.
 
 
 # 2: Cases Per County for People Aged 30 and Younger

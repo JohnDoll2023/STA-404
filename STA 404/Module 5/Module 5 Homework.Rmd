@@ -1,0 +1,119 @@
+---
+title: "Module 5 Homework"
+author: "John Doll"
+date: "10/5/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gridExtra)
+library(ggmosaic)
+library(ggrepel)
+library(patchwork)
+library(tidyquant)
+library(lubridate)
+library(waffle)
+library(grid)
+```
+
+# 1. Regarding the Pie Chart in the Employee Report
+
+### Critique based on Cleveland and McGill perspective
+
+After looking at Cleveland and McGill's 10 elementary perceptual tasks, I think possibly 4 are relevant with the employee report pie chart. Three for sure are angle, area, and color saturation. A fourth that I think is not meant for the pie chart is curvature. I believe this is more geared for line graphs, since pie charts contain the same exact curvature around the entire circle. The first item to appear in the ranking is angle which comes in at number 5, with area and color saturation following in the back half of the rankings. This indicates that reading the pie chart is more difficult than many other charts that could more effectively display the data shown by the pie chart. Plots such as a bar graph or a line chart to show the relationship in employee well-being over time would be much more useful. Additionally, this pie chart has only 4 pieces to it while the legend claims five. This can be misleading because at a quick glance, a viewer likely would not catch this and not be informed that 0% of respondents thought that they had poor health. While it may not seem necessary since the % is 0, it does not make the data "null" or "void." The data is that 0% of people reported poor health which in my opinion, is a very important statistic that should be highlighted. So while the pie chart may embody some perceptual tools, in this application it fails.
+
+### Comment on use of Color
+
+Knafflic believes that color should be used to highlight a specific part of the data you are trying to showcase, while the rest should be a singular, non-dominant color. This pie chart is clearly not effective in that since each pie piece shows a different color, except for the poor health portion, since it shows no color. A different color scheme I would suggest would be coloring all pieces of the pie chart grey except for the one being emphasized, which could be green if it were pointing out a healthy pie piece and orange if it were pointing out an unhealthy pie piece.
+
+### Modification
+
+As previously stated, the graph could be changed to something like a bar or line graph, depending on the amount of data available. I would keep the y-axis labels as percentages since total amount of respondents may differ from year to year. If I were keeping the pie chart, then if I was emphasizing health, I would make that particular piece a lighter green shade and the rest grey because as shown in the article by Elliot, green relates positively to health. If I were pointing out a negative piece of the pie (poor is really the only negaative piece), then I would color it orange to show a danger/caution to the percentage of people that responded in that zone.
+
+# 2. Ohio COVID Data
+
+### 7 Day Moving Average of new Cases
+
+```{r, warning=FALSE, message=FALSE}
+#read in data
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+
+#filter out row of totals and mutate variables
+ohioDF <- ohioDF %>% 
+  filter(Sex != "Total") %>% 
+  mutate(AgeFactor = factor(`Age Range`), OnsetDate = mdy(`Onset Date`))
+
+#create Butler county data set and group by onset date
+butlerDF <- ohioDF %>% 
+  filter(County == "Butler") %>% 
+  group_by(OnsetDate) %>% 
+  summarize(ncases = sum(`Case Count`))
+
+totalCases <- sum(butlerDF$ncases)
+
+Today <- Sys.Date()
+
+#creation of 7 day moving average graph
+b <- ggplot(data = butlerDF, aes(x = OnsetDate, y = ncases)) +
+  geom_col(color = "grey") +
+  geom_ma(n = 7, linetype = 1, color = "red", size = 1.25) +
+  labs(x = "Onset Date", y = "Number of New Cases", title = "Ohio Case Counts", subtitle = 
+        paste("Updated: ", Today, source = "https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")) +
+  theme_minimal()
+
+b
+```
+
+This graph shows the daily case count as well as seven day average case count for Butler county since the pandemic began. The very large spike is located in August when students began to move back on campus.
+
+
+### Added Inset Figure
+
+```{r}
+#create inset graph to go in upper left corner
+bInset <- b +
+  coord_cartesian(xlim = c(Today - 30, Today), ylim = c(0, 100)) +
+  scale_x_continuous(breaks = as.Date("2020-09-21"), labels = "September 6 - October 6") +
+  theme(title = element_blank(), axis.ticks = element_blank())
+
+#create variables to be used in graph
+b1 <- ggplotGrob(bInset)
+firstCase <- min(butlerDF$OnsetDate)
+
+#display graph with inset graph in upper left
+b +
+  annotation_custom(grob=b1,
+                    xmin=firstCase,firstCase + 80, 
+                    ymin=65, ymax=145) +
+  theme(legend.title=element_blank())
+```
+
+The main graph shows what the last graph showed. However, there has been an addition which is the overlayed graph in the upper left corner which shows the data of the daily cases as well as seven day average over just the past month for Butler county.
+
+
+
+# 3. Butler County Waffle Chart
+
+```{r, warning=FALSE, message=FALSE}
+#warp data frame to be the data we need for the waffle graph
+butlerWaffle <- ohioDF %>% 
+  filter(County == "Butler",
+         AgeFactor != "Unknown") %>% 
+  group_by(AgeFactor) %>% 
+  summarize(ncases = sum(`Case Count`)) %>% 
+  select(AgeFactor, ncases)
+
+#create labels for waffle graph
+casesPerAge <- round(((butlerWaffle$ncases) / totalCases) * 100)
+  casesPerAge[2] <- 27
+names(casesPerAge) <- as.vector(butlerWaffle$AgeFactor)
+  
+#waffle graph without waffle
+waffle(parts = casesPerAge, xlab="1 block = 1% of cases", rows = 10)
+```
+
+This beautiful waffle graph shows that the 0-19 and 20-29 age group make up nearly 50% of the cases in Butler county, most of which we would presume are Miami University students. The smallest age range is 80+ years old.
