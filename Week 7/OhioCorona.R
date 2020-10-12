@@ -23,7 +23,7 @@ ohioDF <- ohioDF %>%
 
 Today <- Sys.Date()
 
-view(ohioDF)
+#view(ohioDF)
 
 ohiocountyDF <- ohioDF %>% 
   group_by(County, OnsetDate) %>% 

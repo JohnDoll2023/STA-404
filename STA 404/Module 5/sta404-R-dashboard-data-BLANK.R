@@ -324,7 +324,7 @@ waffle(parts=rpctGDP2[dd],
 # Aside: tables
 
 library(forcats)
-quantile(myGapData$gdpPercap,probs=c(0,.25,.75,1), na.rm=TRUE)
+quantile(myGapData$gdpPercap,probs=c(0,.25,.75,1), na.rm=TRUE) #not as smart since we know there will be a trend over time
 
 myGapData <- myGapData %>% 
   mutate(GDPpcQuart = ifelse(gdpPercap<1202.1,"Lowest 25%",
@@ -335,9 +335,18 @@ myGapData <- myGapData %>%
 myGapData2007 <- myGapData %>% 
   filter(year == 2007)
 
+QPG <- quantile(myGapData2007$gdpPercap,probs=c(0,.25,.75,1), na.rm=TRUE) #smarter since we know its only over a single year
+
+myGap2007 <- myGapData2007 %>% 
+  mutate(GDPpcQuart = ifelse(gdpPercap<QPG[2],"Lowest 25%",
+                             ifelse(gdpPercap < QPG[3],"Middle 50%",
+                                    ifelse(gdpPercap < QPG[4],"Highest 25%","NA")))) %>% 
+  mutate(GDPfact = factor(GDPpcQuart, levels = c("Lowest 25%","Middle 50%","Highest 25%")))
+
+
 # Table
-table(myGapData$GDPpcQuart)
-table(myGapData$GDPfact)       # look at the factor version of this
+table(myGap2007$GDPpcQuart)
+table(myGap2007$GDPfact)       # look at the factor version of this
 
 with(myGapData, table(year, continent, GDPfact))
 
@@ -350,7 +359,7 @@ GDP2007.df
 # what happens if we don't wrap continent below ...
 ggplot() +
   geom_mosaic(data=GDP2007.df, 
-              aes(weight=Freq, x=continent, fill=GDPfact))
+              aes(weight=Freq, x=product(continent), fill=GDPfact))
 
 ggplot(data=GDP2007.df) +
   geom_mosaic(aes(weight=Freq, x=product(continent), 

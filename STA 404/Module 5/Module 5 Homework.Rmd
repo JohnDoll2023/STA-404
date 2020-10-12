@@ -113,7 +113,7 @@ casesPerAge <- round(((butlerWaffle$ncases) / totalCases) * 100)
 names(casesPerAge) <- as.vector(butlerWaffle$AgeFactor)
   
 #waffle graph without waffle
-waffle(parts = casesPerAge, xlab="1 block = 1% of cases", rows = 10)
+waffle(parts = casesPerAge, xlab="1 block = 1% of cases (67 cases)", rows = 10)
 ```
 
 This beautiful waffle graph shows that the 0-19 and 20-29 age group make up nearly 50% of the cases in Butler county, most of which we would presume are Miami University students. The smallest age range is 80+ years old.

@@ -3,9 +3,9 @@ title: "Module 4 Homework Extension"
 author: "John Doll"
 date: "9/30/2020"
 output:
-  pdf_document: default
-  word_document: default
   html_document: default
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
