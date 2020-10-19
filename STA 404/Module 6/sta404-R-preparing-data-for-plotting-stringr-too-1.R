@@ -61,6 +61,46 @@ View(temp_DF)
 #  other arguments are the columns in the original DF 
 
 library(tidyverse)
+temp_DF <- data.frame(country = paste("C",rep(1:5,2),sep = ""),
+                      vars    = as.character(rep(c("a","b"),c(5,5))), 
+                      YR1960  = rnorm(10),
+                      YR1961  = rnorm(10))
+
+library(tidyverse)
+
+# COMMENT 1:  Can chain together the operations
+#             we discussed last class
+
+temp_DF_expand <- temp_DF %>% 
+  pivot_longer(cols=YR1960:YR1961,
+               names_to = "cyear",
+               values_to = "measurement") %>% 
+  mutate(year = as.numeric(substring(cyear,3))) %>% 
+  select(-cyear) %>% 
+  pivot_wider(id_cols = c(country,year),
+              names_from=vars,
+              values_from=measurement)
+
+# COMMENT 2:  Can reference components of 
+#             data frames in different ways
+
+dim(temp_DF_expand)
+names(temp_DF_expand)
+
+temp_DF_expand$country
+temp_DF_expand %>% 
+  select(country)
+
+temp_DF_expand[,1]
+#DF[row indices, column indices]
+temp_DF_expand[,c(1,4)]
+temp_DF_expand[,-(2:3)]
+
+temp_DF_expand %>% 
+  filter(country == "c1")
+temp_DF_expand[temp_DF_expand$country == "c1",]
+
+temp_DF_expand[1,1]
 
 temp_DF %>% 
   group_by(vars) %>% 
@@ -203,6 +243,8 @@ HNP_DF_subset <- HNP_DF %>%
 View(HNP_DF_subset)
 dim(HNP_DF)
 dim(HNP_DF_subset)
+names(HNP_DF_subset)
+#   pivot_longer(cols = 'Country Name':'1960)   country name country code indicator name indicator code 1960
 
 
 # need to pivot_longer / 'gather' the years AND 
@@ -222,11 +264,12 @@ HNP_DF_long <- HNP_DF_subset %>%
   mutate(year=as.numeric(cyear)) %>% 
   select(-cyear) 
 
-
+glimpse(HNP_DF_long)
 View(HNP_DF_long)
 dim(HNP_DF_long)
 names(HNP_DF_long)
-
+head(HNP_DF_long)
+head(HNP_DF_long[, c(2,3,5)])
 str(HNP_DF_long)
 
 #
@@ -327,8 +370,8 @@ View(HNP_DF_expand2)
 
 ####################################################
 
-unique(HNP_DF_expand$Country_Name)
-
+uniqueNames <- unique(HNP_DF_expand$Country_Name)
+uniqueNames[1:41]
 ########################  ..........................................
 ########################  Number of countries exceed expectation ...
 ########################  ..........................................
@@ -378,6 +421,9 @@ HNP_DF_expand_no_groups <- HNP_DF_expand %>%
                                )))  
 
 unique(HNP_DF_expand_no_groups$Country_Name)
+HNP_DF_expand_no_groups <- HNP_DF_expand %>% 
+  filter(!(Country_Name %in% uniqueNames[1:41]))
+
 
 View(HNP_DF_expand_no_groups)
 
@@ -398,7 +444,7 @@ ggplot(data = HNP_DF_expand_no_groups) +
   xlab("Year") + 
   ylab("Birth Rate (Births/Population)")
 
-ggplot(data = HHNP_DF_expand_no_groups) + 
+ggplot(data = HNP_DF_expand_no_groups) + 
   geom_line(aes(x = year, y = birth_Rate,group= Country_Name), 
             alpha = 0.1) + 
   geom_line(data = subset(HNP_DF_expand, Country_Name == "Indonesia"),
@@ -447,6 +493,19 @@ ggplot() +
   geom_line(data=HNP_avg, aes(x=year,y=Q1DR),color='blue',linetype="dashed", size=1)+
   geom_line(data=HNP_avg, aes(x=year,y=Q3DR),color='blue',linetype="dashed", size=1)+
   geom_line(data=HNP_avg, aes(x=year,y=medDR),color='blue', size=1)
+
+ggplot() +
+  geom_line(data=HNP_DF_expand_no_groups, 
+            aes(x=year,y=birth_Rate,group=Country_Name), 
+            color="gray", alpha=.6) +
+  geom_line(data=HNP_Indonesia, aes(x=year,y=birth_Rate), 
+            color="indianred",
+            size=1.5) +
+  geom_line(data=HNP_avg, aes(x=year,y=Q1DR),color='blue',linetype="dashed", size=1)+
+  geom_line(data=HNP_avg, aes(x=year,y=Q3DR),color='blue',linetype="dashed", size=1)+
+  geom_line(data=HNP_avg, aes(x=year,y=medDR),color='blue', size=1) +
+  labs(x = "Year", y = "Birth Rate per 10,000", title = "Country Birth Rates") +
+  theme_minimal()
 
 
 # IN CLASS:  redo this with a different country
