@@ -1,0 +1,89 @@
+---
+title: "Module 7 Homework"
+author: "John Doll"
+date: "10/23/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(maps)        
+library(ggplot2)
+library(mapproj)
+library(ggthemes)
+library(tidyquant)
+library(readxl)
+library(ggmap)
+```
+
+# 1. Generate a map of your home location 
+
+```{r}
+#getting ohio map
+map.county <- map_data('county')  
+ohio.county <- subset(map.county, region=="ohio")
+
+#hometown coordinates
+wapak_df <- data.frame(long=-84.19408, lat=40.56894)
+
+#US map
+states_map <- map_data("state")
+
+#plot of my hometown
+ggplot() +
+  geom_polygon(data = states_map, aes(x=long,y=lat,group=group), fill="white", colour=
+                 "black") +
+  geom_point(data = wapak_df, aes(x = long, y = lat)) +
+  annotate(geom="text",x=-84.19408,y=40.56894, label="Wapakoneta",adj=-0.05, color="red")+
+  theme_nothing()
+```
+
+# 2. Generate a choropleth map of Ohio and shade counties by their case rate per thousand
+
+```{r, warning = FALSE, message = FALSE}
+#get corona cases from ohio.gov
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+#get ohio population from census.gov source = https://www.census.gov/data/datasets/time-
+#series/demo/popest/2010s-counties-total.html#par_textimage_739801612
+ohioPop <- read_excel("co-est2019-annres-39.xlsx")
+
+#get the date
+Today <- Sys.Date()
+
+#filter out row of totals and mutate variables
+ohioDF <- ohioDF %>% 
+  filter(Sex != "Total") %>% 
+  mutate(OnsetDate = mdy(`Onset Date`)) %>% 
+  filter(Today - OnsetDate <= 30) %>% 
+  group_by(County) %>% 
+  summarize(ncases = sum(`Case Count`))
+
+#filter out unneeded rows and columns before combining tables
+ohioPop <- ohioPop[c(-1, -2, -3, -4, -93, -94, -95, -96, -97),2]
+
+#combine tables and changing variables
+#rename county to region to map it with ohio.county
+#https://www.sharpsightlabs.com/blog/rename-columns-in-r/
+combinedOhio <- cbind(ohioDF, ohioPop) %>% 
+  mutate(countyPop = as.double(`...2`)) %>% 
+  select(!`...2`) %>% 
+  mutate(rate = (ncases/countyPop) * 1000) %>% 
+  mutate(County = str_to_lower(County)) %>% 
+  rename(subregion = County)
+
+#combine all data sets into one
+rateDB <- merge(ohio.county, combinedOhio, by.x = "subregion", by.y = "subregion")
+  
+#map
+ggplot(data = rateDB, aes(x=long,y=lat,group = group, fill=rate)) +
+  geom_polygon(color = "black") +
+  scale_fill_gradient2(low="#559999",mid="grey90",high="#BB650B",
+                      midpoint=median(rateDB$rate)) +
+  labs(title = "Ohio COVID-19 Infection Rates per 1000 Residents over the last 30 Days", 
+       subtitle = paste("Updated: ", Today)) +
+  theme_map() +
+  theme(legend.position = "right")
+```
