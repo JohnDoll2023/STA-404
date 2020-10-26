@@ -83,8 +83,6 @@ ohioMap <- ggplot(data = rateDB, aes(x=long,y=lat,group = group, fill=CaseCat)) 
   scale_fill_brewer() +
   guides(fill = FALSE) +
   theme_map()
-
-ohioMap
 ```
 
 # Bottom panels
@@ -99,8 +97,6 @@ Cases <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   xlim(0, max(ohioCountyDF$ncases + 11000)) +
   labs(y = "", x = "", title = "Case Count") 
- 
-Cases
 
 #Bottom middle hospitalization graph which displays the top 20 counties by cases
 Hosp <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes(y=reorder(County, ncases), x=nhos, fill = HosCat)) +
@@ -111,7 +107,6 @@ Hosp <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes(
   theme(axis.text = element_blank(), axis.ticks = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   xlim(0, max(ohioCountyDF$nhos + 800)) +
   labs(y = "", x = "", title = "Hospitalization Count") 
-Hosp
 
 #Bottom right death graph which displays the top 20 counties by cases
 Deaths <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes(y=reorder(County, ncases), x=ndead, fill = DeathCat)) +
@@ -122,7 +117,6 @@ Deaths <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], ae
   theme(axis.text = element_blank(), axis.ticks = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   xlim(0, max(ohioCountyDF$ndead + 550)) +
   labs(y = "", x = "", title = "Death Count") 
-Deaths
 
 #combine all three graphs into one object
 bottom <- Cases + Hosp + Deaths
@@ -180,7 +174,7 @@ recBar <- ggplot(data = ohioRec, aes(x = OnsetDate + 10, y = recovered)) +
   labs(y = "", x = "", title = "Presumed Recovered", subtitle = paste(sum(ohioRec$recovered)))
 
 right <- casesBar / hosBar / deadBar / recBar
-right
+
 ```
 
 # Pulling it all together
@@ -208,3 +202,20 @@ print(Deaths, vp = viewport(layout.pos.row = 5:9,
 
 
 ```
+
+
+Deliverables:
+
+-dashboard
+-what did you do: the data frames that I built were these, i downlaoded the ohio data from here, then i filtered out these columns, have someone be able to reproduce what you did, cite references
+
+-citations of libraries
+-other resources cited includes website links
+-dashboard, processes, citations, then code (whatever order is mentioned in assignment)
+
+-save object as pdf, then import it in later
+-used courier for code when copying it to word
+
+
+
+

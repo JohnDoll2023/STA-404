@@ -3,8 +3,9 @@ title: "Module 7 Homework"
 author: "John Doll"
 date: "10/23/2020"
 output:
-  html_document: default
   pdf_document: default
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -49,6 +50,7 @@ ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
 #get ohio population from census.gov source = https://www.census.gov/data/datasets/time-
 #series/demo/popest/2010s-counties-total.html#par_textimage_739801612
 ohioPop <- read_excel("co-est2019-annres-39.xlsx")
+view(ohioPop)
 
 #get the date
 Today <- Sys.Date()
@@ -61,15 +63,15 @@ ohioDF <- ohioDF %>%
   group_by(County) %>% 
   summarize(ncases = sum(`Case Count`))
 
-#filter out unneeded rows and columns before combining tables
-ohioPop <- ohioPop[c(-1, -2, -3, -4, -93, -94, -95, -96, -97),2]
+#filter out unneeded rows and columns before combining tables to leave just the 2019 pop
+ohioPop <- ohioPop[5:92,13]
 
 #combine tables and changing variables
-#rename county to region to map it with ohio.county
+#rename county to subregion to map it with ohio.county
 #https://www.sharpsightlabs.com/blog/rename-columns-in-r/
 combinedOhio <- cbind(ohioDF, ohioPop) %>% 
-  mutate(countyPop = as.double(`...2`)) %>% 
-  select(!`...2`) %>% 
+  mutate(countyPop = as.double(`...13`)) %>% 
+  select(!`...13`) %>% 
   mutate(rate = (ncases/countyPop) * 1000) %>% 
   mutate(County = str_to_lower(County)) %>% 
   rename(subregion = County)
