@@ -1,0 +1,210 @@
+---
+title: "Project 1"
+author: "John Doll"
+date: "10/25/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(maps)        
+library(ggplot2)
+library(mapproj)
+library(ggthemes)
+library(tidyquant)
+library(readxl)
+library(ggmap)
+library(patchwork)
+library(scales)
+library(grid)
+```
+
+# Map
+
+```{r, warning=FALSE, message=FALSE}
+#Ohio map
+map.county <- map_data('county')  
+ohio.county <- subset(map.county, region=="ohio")
+
+#get corona cases from ohio.gov
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+#get ohio population from census.gov source = https://www.census.gov/data/datasets/time-
+#series/demo/popest/2010s-counties-total.html#par_textimage_739801612
+ohioPop <- read_excel("co-est2019-annres-39.xlsx")
+
+#get the date
+Today <- Sys.Date()
+
+#filter out row of totals and mutate variables
+ohioDF <- ohioDF %>% 
+  filter(Sex != "Total") %>% 
+  mutate(OnsetDate = mdy(`Onset Date`)) 
+  #filter(Today - OnsetDate <= 30) %>%   ------------------------------------no more filter by time occurence
+
+#Creates dataset grouped by County with case, hospitalization, and death count, used for map and for bottom plots
+ohioCountyDF <- ohioDF %>% 
+  group_by(County) %>% 
+  summarize(ncases = sum(`Case Count`),
+            ndead = sum(`Death Due to Illness Count`, na.rm = TRUE),
+            nhos = sum(`Hospitalized Count`, na.rm = TRUE)) %>% 
+  mutate(CaseCat = cut(ncases,
+                       breaks = c(0, 1000, 2500, 5000, 
+                                  15000, 30000, 50000))) %>% 
+  mutate(HosCat = cut(nhos,
+                       breaks = c(0, 100, 500, 
+                                  1000, 2000, 2500, 3000))) %>% 
+  mutate(DeathCat = cut(ndead,
+                       breaks = c(0, 150, 
+                                  200, 350, 600, 700))) 
+
+
+#filter out unneeded rows and columns before combining tables
+ohioPop <- ohioPop[c(-1, -2, -3, -4, -93, -94, -95, -96, -97),2]
+
+#combine tables and changing variables
+#rename county to region to map it with ohio.county
+#https://www.sharpsightlabs.com/blog/rename-columns-in-r/
+combinedOhio <- cbind(ohioCountyDF, ohioPop) %>% 
+  mutate(countyPop = as.double(`...2`)) %>% 
+  select(!`...2`) %>% 
+  mutate(rate = (ncases/countyPop) * 1000) %>% 
+  mutate(County = str_to_lower(County)) %>% 
+  rename(subregion = County)
+
+#combine all data sets into one for state map
+rateDB <- merge(ohio.county, combinedOhio, by.x = "subregion", by.y = "subregion")
+  
+#ohio map with continuous shading by total cases //Need to be categorical?
+ohioMap <- ggplot(data = rateDB, aes(x=long,y=lat,group = group, fill=CaseCat)) +
+  geom_polygon(color = "black") +
+  scale_fill_brewer() +
+  guides(fill = FALSE) +
+  theme_map()
+
+ohioMap
+```
+
+# Bottom panels
+
+```{r, warning=FALSE, message=FALSE}
+#Bottom left case graph which displays the top 20 counties by cases
+Cases <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes(y=reorder(County, ncases), x=ncases, fill = CaseCat)) +
+  geom_col() +
+  scale_fill_brewer() +
+  guides(fill = FALSE) +
+  geom_text(aes(label = ncases), hjust = -.2) +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlim(0, max(ohioCountyDF$ncases + 11000)) +
+  labs(y = "", x = "", title = "Case Count") 
+ 
+Cases
+
+#Bottom middle hospitalization graph which displays the top 20 counties by cases
+Hosp <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes(y=reorder(County, ncases), x=nhos, fill = HosCat)) +
+  geom_col() +
+  scale_fill_brewer() +
+  guides(fill = FALSE) +
+  geom_text(aes(label = nhos), hjust = -.2) +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlim(0, max(ohioCountyDF$nhos + 800)) +
+  labs(y = "", x = "", title = "Hospitalization Count") 
+Hosp
+
+#Bottom right death graph which displays the top 20 counties by cases
+Deaths <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes(y=reorder(County, ncases), x=ndead, fill = DeathCat)) +
+  geom_col() +
+  scale_fill_brewer() +
+  guides(fill = FALSE) +
+  geom_text(aes(label = ndead), hjust = -.2) +
+  theme(axis.text = element_blank(), axis.ticks = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlim(0, max(ohioCountyDF$ndead + 550)) +
+  labs(y = "", x = "", title = "Death Count") 
+Deaths
+
+#combine all three graphs into one object
+bottom <- Cases + Hosp + Deaths
+```
+
+# Side Panels
+
+```{r, warning = FALSE, message = FALSE}
+#Dataset for right panel of four charts
+ohioCasesDF <- ohioDF %>% 
+  group_by(OnsetDate) %>% 
+  summarize(ncases = sum(`Case Count`),
+            ndead = sum(`Death Due to Illness Count`, na.rm = TRUE),
+            nhos = sum(`Hospitalized Count`, na.rm = TRUE))
+
+#breaks for dates on x-axis graph
+datebreaks <- seq(as.Date("2020-01-01"), as.Date("2020-11-01"), by = "2 months")
+
+#right top case graph
+casesBar <- ggplot(data = ohioCasesDF, aes(x = OnsetDate, y = ncases)) +
+  geom_col(color = "blue") +
+  scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
+  scale_fill_brewer() +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.subtitle = element_text(hjust = 0.5, size = 20, color = "red")) +
+  labs(y = "", x = "", title = "Cases", subtitle = paste(sum(ohioCasesDF$ncases))) 
+
+#right upper middle hospitalization graph
+hosBar <- ggplot(data = ohioCasesDF, aes(x = OnsetDate, y = nhos)) +
+  geom_col(color = "blue") +
+  scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
+  scale_fill_brewer() +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.subtitle = element_text(hjust = 0.5, size = 20, color = "red")) +
+  labs(y = "", x = "", title = "Hospitalizations", subtitle = paste(sum(ohioCasesDF$nhos))) 
+
+#right lower middle death graph
+deadBar <- ggplot(data = ohioCasesDF, aes(x = OnsetDate, y = ndead)) +
+  geom_col(color = "blue") +
+  scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
+  scale_fill_brewer() +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.subtitle = element_text(hjust = 0.5, size = 20, color = "red")) +
+  labs(y = "", x = "", title = "Deaths", subtitle = paste(sum(ohioCasesDF$ndead))) 
+
+Today <- Sys.Date()
+
+ohioRec <- ohioCasesDF %>% 
+  filter(OnsetDate < Today - 10) %>% 
+  mutate(recovered = ncases - ndead) 
+
+#right bottom graph for presumed recoveries
+recBar <- ggplot(data = ohioRec, aes(x = OnsetDate + 10, y = recovered)) +
+  geom_col(color = "blue") +
+  scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
+  scale_fill_brewer() +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.title = element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), plot.subtitle = element_text(hjust = 0.5, size = 20, color = "red")) +
+  labs(y = "", x = "", title = "Presumed Recovered", subtitle = paste(sum(ohioRec$recovered)))
+
+right <- casesBar / hosBar / deadBar / recBar
+right
+```
+
+# Pulling it all together
+
+```{r, warning=FALSE, message=FALSE}
+pushViewport(viewport(layout = grid.layout(9,3))) #, heights = unit(1, "inches"), width = unit(1, "inches"))))
+print(ohioMap, vp = viewport(layout.pos.row = 1:4,
+                             layout.pos.col = 1:2))
+print(casesBar, vp = viewport(layout.pos.row = 1,
+                              layout.pos.col = 3))
+print(hosBar, vp = viewport(layout.pos.row = 2,
+                              layout.pos.col = 3))
+print(deadBar, vp = viewport(layout.pos.row = 3,
+                              layout.pos.col = 3))
+print(recBar, vp = viewport(layout.pos.row = 4,
+                              layout.pos.col = 3))
+#print(right, vp = viewport(layout.pos.row = 1:4,
+ #                          layout.pos.col = 3))
+print(Cases, vp = viewport(layout.pos.row = 5:9,
+                              layout.pos.col = 1))
+print(Hosp, vp = viewport(layout.pos.row = 5:9,
+                              layout.pos.col = 2))
+print(Deaths, vp = viewport(layout.pos.row = 5:9,
+                              layout.pos.col = 3))
+
+
+```
