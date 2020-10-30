@@ -120,6 +120,44 @@ GDPcombo <- GDPcombo %>%
   mutate(order_continent = factor(continent,
                                   levels=c("Oceania", "Africa", "Europe", "Americas", "Asia")))
 
+GDPcombo <- GDPcombo %>% 
+  mutate(TotalGDPTrill = ContinentTotalGDP/1000000000,
+         TotalGDPTrill2 = ContinentTotalGDP/10^12)
+
+with(GDPcombo, cor(TotalGDPTrill, TotalGDPTrill2))
+
+TotalGDPTrill
+
+
+  
+gTrill <- ggplot(GDPcombo, aes(x=year,y=round(TotalGDPTrill2, digits = 1),
+                       fill=order_continent)) + 
+  geom_bar(stat="identity") +
+  theme(legend.position = "top")
+
+ggplotly(gTrill)
+
+gTrill2 <- ggplot(GDPcombo, aes(x=year,y=round(TotalGDPTrill2, digits = 1),
+                               fill=order_continent)) + 
+  geom_bar(stat="identity") +
+  scale_y_continuous(name = "Total GDP ($ trillion)")
+  theme(legend.position = "top")
+  
+ggplotly(gTrill2)
+
+GDPcombo <- GDPcombo %>% 
+  mutate(GDP = round(TotalGDPTrill, digits= 1),
+         Continent = order_continent)
+
+gTrill2 <- ggplot(GDPcombo, aes(x=year,y=round(GDP, digits = 1),
+                                fill=order_continent)) + 
+  geom_bar(stat="identity") +
+  scale_y_continuous(name = "Total GDP ($ trillion)") +
+  theme(legend.position = "top")
+
+ggplotly(gTrill2)
+
+
 # STACK this response
 ggplot(GDPcombo, aes(x=year,y=ContinentTotalGDP,
                      fill=order_continent)) + 
@@ -229,11 +267,20 @@ crosstalk::bscols(gg1, DT::datatable(m))
 #      y = life expectancy
 # 4. Wrap this is ggplotly() to query data
 #      for countries on the plot
+conts <- read_csv("countryContinent.csv")
+length(unique(gapminder$country))
+length(unique(conts$country))
+firstMerge <- merge(gapminder, counts, by.x = "country", by.y = "country")
+unique(firstMerge$country)
 
+#missing 19 countries from gapminder
+view(firstMerge)
 
+gGap <- ggplot(gapminder, aes(x = gdpPercap, y = lifeExp, color = continent, size = sqrt(pop), fill = continent)) +
+  geom_point() +
+  scale_x_log10()
 
-
-
+ggplotly(gGap)
 # .......................................
 # animation can be another interesting 
 #           tools
