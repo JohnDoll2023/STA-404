@@ -27,17 +27,23 @@ ui <- fluidPage(
                   choices = c("age.yrs", "fev.L", "ht.in"),
                   selected="ht.in"),
       
-      #add alpha
-      #numericInput(inputId = "myalpha", label = "Alpha Transparency: " ,
-       #            value = .5, min = .1, max = 1, step = .1),
-      
       sliderInput(inputId = "myalpha", label = "Alpha Transparency: " ,
                    value = .5, min = .1, max = 1, step = .1),
       
       sliderInput(inputId = "mysize", label = "Size: " ,
-                  value = .5, min = .1, max = 1, step = .1),
+                  value = 2, min = .1, max = 5, step = .1),
       
-      checkboxInput(inputId= "color_gender", label = "Color by Gender")
+      checkboxInput(inputId= "color_gender", label = "Color by Gender"),
+      
+      #jitter option
+      sliderInput(inputId= "jpoint", label = "Jitter Points: ",
+                  value = 0, min = 0, max = 1, step = .2),
+      
+      #loess smooth
+      checkboxInput(inputId= "lsmooth", label = "Loess Smooth"),
+      
+      #facet
+      checkboxInput(inputId= "facet", label = "Facet")
     ),
     
     # Main panel typically used to display outputs
@@ -55,12 +61,67 @@ server <- function(input, output) {
   output$myscatterplot <-
     renderPlot({
        if(input$color_gender) {
-         ggplot() + 
-           geom_point(aes_string(x=input$xvar,y=input$yvar,color="gender", alpha = input$myalpha, size = input$mysize ),
-                 data=fev_DF)
+         if(input$facet) {
+           
+           #plot if color gender, facet, and loess smooth are activated
+           if(input$lsmooth) {
+             ggplot(aes_string(x=input$xvar,y=input$yvar,color="gender"), data=fev_DF) + 
+               geom_point(alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint)) +
+               geom_smooth(method="loess", se=FALSE) +
+               facet_wrap( ~ ind.Male)
+           } else {
+             
+             #plot if color gender and facet are activated
+             ggplot(aes_string(x=input$xvar,y=input$yvar,color="gender"), data=fev_DF) + 
+               geom_point(alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint)) +
+               facet_wrap( ~ ind.Male)
+           }
+         
+         } else {
+           
+           #plot if color gender and loess smooth are activated
+           if(input$lsmooth) {
+            ggplot(aes_string(x=input$xvar,y=input$yvar,color="gender"), data=fev_DF ) + 
+              geom_point(alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint)) +
+              geom_smooth(method="loess", se=FALSE)
+           } else {
+             
+             #plot if color gender is activated
+             ggplot() + 
+               geom_point(aes_string(x=input$xvar,y=input$yvar,color="gender"), alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint), data=fev_DF)
+           }
+         }
+         
        } else {
-         ggplot() + 
-           geom_point(aes_string(x=input$xvar,y=input$yvar, size = input$mysize), alpha = input$myalpha, data=fev_DF)
+         if(input$facet) {
+           
+           #plot if facet and loess smooth are activated
+           if(input$lsmooth) {
+             ggplot(aes_string(x=input$xvar,y=input$yvar), data = fev_DF) + 
+               geom_point( alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint)) +
+               geom_smooth(method="loess", se=FALSE) +
+               facet_wrap( ~ ind.Male)
+           } else {
+             
+             #plot if facet is activated
+             ggplot(aes_string(x=input$xvar,y=input$yvar), data = fev_DF) + 
+               geom_point( alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint)) +
+               facet_wrap( ~ ind.Male)
+           }
+          }else {
+            
+            #plot if loess smooth is activated
+            if(input$lsmooth) {
+             ggplot(aes_string(x=input$xvar,y=input$yvar), data=fev_DF) + 
+               geom_point( alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint, height = 0)) +
+               geom_smooth(method="loess", se=FALSE)
+            } else {
+              
+              #plot if nothing is activated
+              ggplot() + 
+                geom_point(aes_string(x=input$xvar,y=input$yvar), alpha = input$myalpha, size = input$mysize, position = position_jitter(width = input$jpoint, height = 0), data=fev_DF)
+            }
+          }
        }
     })
 }
