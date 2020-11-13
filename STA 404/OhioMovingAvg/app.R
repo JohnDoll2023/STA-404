@@ -7,6 +7,14 @@
 #    http://shiny.rstudio.com/
 # Ohio MovingAvg from Module 4 homework
 
+
+# Revision includes: 11/11/20 class
+#   1. adding plot for BC only  
+#   2. named vectors for input
+#   3. using tags in output
+#   4. filtering dates
+#   5. adding tabs  <- ADDED NOW!
+
 library(shiny)
 library(lubridate)
 library(tidyquant)
@@ -30,6 +38,15 @@ OhioCountyDF <- OhioDF %>%
                           na.rm=TRUE),
               nhosp = sum(`Hospitalized Count`, na.rm = TRUE )) 
 
+varnames <- c("Cases" = "ncases",
+              "Deaths" = "ndead",
+              "Hospitalizations" = "nhosp")
+
+#define FirstCase date for use in input
+FirstCase <- min(OhioDF$OnsetDate)
+
+
+
 # data frame with Blue County Data
 BC_DF <- OhioCountyDF %>% 
     filter(County == "Butler") 
@@ -46,19 +63,29 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             selectInput(inputId = "yvar", label= "Select response to explore", 
-                        choices = c("ncases", "nhosp", "ndead"),
+                        choices = varnames,
                         selected="ncases"),
             
             sliderInput("MADays",
                         "Days averaged:",
                         min = 2,
                         max = 30,
-                        value = 7)
+                        value = 7),
+            dateRangeInput("daterange",
+                           "Date range:",
+                           start = FirstCase,
+                           end   = TODAY
+            )
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("MAPlot")
+            tabsetPanel (
+                tabPanel("Butler County",
+                         plotOutput("BCPlot")),
+                tabPanel("Ohio Counties",
+                         plotOutput("MAPlot"))
+            )
         )
     )
 )
@@ -69,7 +96,8 @@ server <- function(input, output) {
     output$MAPlot <- renderPlot({
         ggplot() +
             labs(x="Onset Date", y=paste("Number of", input$yvar),
-                 title=paste(input$MADays, "Day Moving Average"),
+                 title=paste(names(varnames)[varnames==input$yvar], " - ",
+                     input$MADays, "Day Moving Average"),
                  subtitle=paste("Updated: ",TODAY),
                  caption="Source: https://coronavirus.ohio.gov/static/COVIDSummaryData.csv") +
             geom_ma(data=OhioCountyDF, 
@@ -79,7 +107,22 @@ server <- function(input, output) {
             geom_ma(data=BC_DF, aes_string (x="OnsetDate", y=input$yvar),
                     n=input$MADays, linetype=1, color="blue", size=1.25) +
             scale_x_date(date_breaks = "1 month",
-                         date_labels = "%b %d") +
+                         date_labels = "%b %d",
+                         limits = input$daterange) +
+            theme_minimal()
+    })
+    
+    output$BCPlot <- renderPlot({
+        ggplot() +
+            labs(x="Onset Date", y=paste("Number of", input$yvar),
+                 title=paste(names(varnames)[varnames==input$yvar], " - ",input$MADays, "Day Moving Average"),
+                 subtitle=paste("Updated: ",TODAY),
+                 caption="Source: https://coronavirus.ohio.gov/static/COVIDSummaryData.csv") +
+            geom_ma(data=BC_DF, aes_string (x="OnsetDate", y=input$yvar),
+                    n=input$MADays, linetype=1, color="blue", size=1.25) +
+            scale_x_date(date_breaks = "1 month",
+                         date_labels = "%b %d",
+                         limits = input$daterange) +
             theme_minimal()
     })
 }
