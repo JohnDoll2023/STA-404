@@ -120,7 +120,7 @@ server <- function(input, output) {
 
     output$OhioPlot <- renderPlot({
         #ohio map with discrete shading by total cases 
-        ohioMap <- ggplot(data = rateDB, aes(x=long,y=lat,group = group, fill=input$mapvar)) +
+        ohioMap <- ggplot(data = rateDB, aes_string(x="long",y="lat",group = "group", fill=input$mapvar)) +
             geom_polygon(color = "black") +
             scale_fill_brewer() +
             guides(fill = FALSE) +

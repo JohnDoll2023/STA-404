@@ -5,15 +5,7 @@
 # Find out more about building applications with Shiny here:
 #
 #    http://shiny.rstudio.com/
-# Ohio MovingAvg from Module 4 homework
-
-
-# Revision includes: 11/11/20 class
-#   1. adding plot for BC only  
-#   2. named vectors for input
-#   3. using tags in output
-#   4. filtering dates
-#   5. adding tabs  <- ADDED NOW!
+#
 
 library(shiny)
 library(tidyverse)
@@ -22,7 +14,7 @@ library(tidyquant)
 library(shinythemes)
 
 # download data and create data sets for plotting ...
-OhioDF <- read_csv(file="https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
 TODAY <- Sys.Date()
 
 OhioDF <- OhioDF %>% 
