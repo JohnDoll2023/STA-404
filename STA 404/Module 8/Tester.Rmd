@@ -1,0 +1,81 @@
+---
+title: "Tester"
+author: "John Doll"
+date: "11/25/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#loading in all packages used for creation of dashboard
+library(tidyverse) 
+library(ggthemes)
+library(tidyquant)
+library(patchwork)
+library(scales)
+library(grid)
+```
+
+# Map
+
+```{r, warning=FALSE, message=FALSE}
+#Loading in state map and extracing just ohio with counties
+map.county <- map_data('county')  
+ohio.county <- subset(map.county, region=="ohio")
+
+#get corona cases/hospitizations/deaths/data from ohio.gov
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv")
+
+#get ohio population by county from census.gov source = https://www.census.gov/data/datasets/time-
+#series/demo/popest/2010s-counties-total.html#par_textimage_739801612
+ohioPop <- read_csv("co-est2019-annres-39.csv")
+
+#filter out row of totals and mutate date variable to be an actual date type
+ohioDF <- ohioDF %>% 
+  filter(Sex != "Total") %>% 
+  mutate(OnsetDate = mdy(`Onset Date`))
+
+#Creates dataset grouped by County with case, hospitalization, and death count, used for state map and for bottom 3 plots, removes NA values, breaks cases, hospitalizations and deaths by categorical amounts for shading purposes
+ohioCountyDF <- ohioDF %>% 
+  group_by(County) %>% 
+  summarize(ncases = sum(`Case Count`),
+            ndead = sum(`Death Due to Illness Count`, na.rm = TRUE),
+            nhos = sum(`Hospitalized Count`, na.rm = TRUE)) %>% 
+  mutate(CaseCat = cut(ncases,
+                       breaks = c(0, 1000, 2500, 5000, 
+                                  15000, 30000, 60000))) %>% 
+  mutate(HosCat = cut(nhos,
+                       breaks = c(0, 100, 500, 
+                                  1000, 2000, 2500, 3000))) %>% 
+  mutate(DeathCat = cut(ndead,
+                       breaks = c(0, 150, 
+                                  200, 350, 600, 700))) 
+
+
+#filter out unneeded rows and columns from total ohio county populations before combining tables
+ohioPop <- ohioPop[5:92,2]
+
+#match total ohio county populations with covid statistics per county so that we can analyze rates of infection.
+#rename county to region to map it with ohio.county
+#https://www.sharpsightlabs.com/blog/rename-columns-in-r/
+combinedOhio <- cbind(ohioCountyDF, ohioPop) %>% 
+  mutate(countyPop = as.double(`X2`)) %>% 
+  select(!`X2`) %>% 
+  mutate(rate = (ncases/countyPop) * 1000) %>% 
+  mutate(County = str_to_lower(County)) %>% 
+  rename(subregion = County)
+
+#combine ohio state map and previously binded dataset together so that data can be displayed on ohio map by county
+rateDB <- merge(ohio.county, combinedOhio, by.x = "subregion", by.y = "subregion")
+
+Cases <- ggplot(data = ohioCountyDF[tail(order(ohioCountyDF$ncases), 20), ], aes(x=reorder(County, -ncases), y=ncases, fill = CaseCat)) +
+  geom_col() +
+  scale_fill_brewer() +
+  guides(fill = FALSE) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, vjust = 1.25),  axis.ticks.x = element_blank(), plot.title = 
+          element_text(hjust = 0.5), panel.background = element_blank(), panel.grid.major = element_blank(), panel.grid.minor 
+        = element_blank()) +
+  labs(y = "Cases", x = "County", title = "Case Count") 
+
+Cases
+```

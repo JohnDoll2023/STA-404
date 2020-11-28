@@ -40,7 +40,7 @@ As previously stated, the graph could be changed to something like a bar or line
 
 ```{r, warning=FALSE, message=FALSE}
 #read in data
-ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv")
 
 #filter out row of totals and mutate variables
 ohioDF <- ohioDF %>% 

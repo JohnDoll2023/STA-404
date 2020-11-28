@@ -46,7 +46,7 @@ ggplot() +
 
 ```{r, warning = FALSE, message = FALSE}
 #get corona cases from ohio.gov
-ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv")
 #get ohio population from census.gov source = https://www.census.gov/data/datasets/time-
 #series/demo/popest/2010s-counties-total.html#par_textimage_739801612
 ohioPop <- read_excel("co-est2019-annres-39.xlsx")

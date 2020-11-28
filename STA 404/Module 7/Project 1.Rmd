@@ -26,7 +26,7 @@ map.county <- map_data('county')
 ohio.county <- subset(map.county, region=="ohio")
 
 #get corona cases/hospitizations/deaths/data from ohio.gov
-ohioDF <- read_csv("https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+ohioDF <- read_csv("https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv")
 
 #get ohio population by county from census.gov source = https://www.census.gov/data/datasets/time-
 #series/demo/popest/2010s-counties-total.html#par_textimage_739801612

@@ -22,7 +22,7 @@ library(tidyquant)
 library(shinythemes)
 
 # download data and create data sets for plotting ...
-OhioDF <- read_csv(file="https://coronavirus.ohio.gov/static/COVIDSummaryData.csv")
+OhioDF <- read_csv(file="https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv")
 TODAY <- Sys.Date()
 
 OhioDF <- OhioDF %>% 
