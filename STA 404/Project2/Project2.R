@@ -28,7 +28,8 @@ ohioDF <- read_csv("https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryD
 
 #get ohio population by county from census.gov source = https://www.census.gov/data/datasets/time-
 #series/demo/popest/2010s-counties-total.html#par_textimage_739801612
-ohioPop <- read_excel("co-est2019-annres-39.xlsx")
+#https://www2.census.gov/programs-surveys/popest/tables/2010-2019/counties/totals/co-est2019-annres-39.xlsx
+ohioPop <- read_xlsx("https://www2.census.gov/programs-surveys/popest/tables/2010-2019/counties/totals/co-est2019-annres-39.xlsx")
 
 #filter out unneeded rows and columns from total ohio county populations before combining tables
 ohioPop <- ohioPop[5:92,2]
@@ -199,6 +200,17 @@ server <- function(input, output) {
     
     output$Acknowledgements <- renderText({
        "Created by John Doll\nLast Edited 11-25-2020\nSources:\n\tR Studio"
+        #ggsaave https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2/topics/ggsave
+        #as.symbol not aes_string https://stackoverflow.com/questions/35345782/shiny-passing-inputvar-to-aes-in-ggplot2
+        #input$tabselected https://stackoverflow.com/questions/38863215/how-do-i-access-print-track-the-current-tab-selection-in-a-shiny-app
+        #file download https://shiny.rstudio.com/articles/download.html
+        #nrec https://www.statology.org/conditional-mutating-r/
+        #ternary operator https://stackoverflow.com/questions/8790143/does-the-ternary-operator-exist-in-r
+        #get rid of legend for chlorpleth https://www.bing.com/search?q=get+rid+of+legend+in+plotly&FORM=AWRE
+        #limit decimal places plotly https://stackoverflow.com/questions/42141878/limit-decimal-places-in-variable-in-r
+        #renderplotly https://www.bing.com/search?FORM=U523DF&PC=U523&q=use+plotly+in+shiny+app
+        #many things here and there, mainly with axes and labels https://r-graphics.org/recipe-legend-title-text
+        #
     })
     
     output$downloadFile <- downloadHandler(
