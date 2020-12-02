@@ -20,8 +20,10 @@ library(scales)
 library(grid)
 library(plotly)
 
+#eliminates scientific notation
+options(scipen = 999)  
+
 #Loading in state map and extracting just ohio with counties
-#https://stringr.tidyverse.org/reference/case.html
 map.county <- map_data('county')  
 ohio.county <- subset(map.county, region=="ohio") %>% 
     mutate(County = str_to_title(subregion)) %>% 
@@ -57,8 +59,6 @@ ohioCountyDF <- ohioDF %>%
                                      200, 300, 600, 1000)))
 
 #match total ohio county populations with covid statistics per county so that we can analyze rates of infection.
-#rename county to region to map it with ohio.county
-#https://www.sharpsightlabs.com/blog/rename-columns-in-r/
 combinedOhio <- cbind(ohioCountyDF, ohioPop) %>% 
     mutate(countyPop = as.double(`POPESTIMATE2019`)) %>% 
     select(!c(`POPESTIMATE2019`, `CTYNAME`))
@@ -177,25 +177,17 @@ server <- function(input, output) {
     })
     
     output$AgePlot <- renderPlot({
-        ggplot(data = ageDF(), aes(x = OnsetDate , y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar), group = AgeFactor, color = AgeFactor)) +
+        ggplot(data = ageDF(), aes(x = OnsetDate , y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar), group = AgeFactor)) +
+            facet_wrap(~AgeFactor) +
             geom_ma(n = 7, linetype = 1, size = 1) +
-            scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
+            scale_x_date(breaks = datebreaks, labels = date_format("%m/%d")) +
             labs(x = "Age", y = paste(if(input$rate) "Rate of" else "Number of", input$mapvar), title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
             theme_minimal() +
             theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+        
     })
     
     output$Acknowledgements <- renderUI({
-        # library(shiny)
-        # library(lubridate)
-        # library(tidyquant)
-        # library(tidyverse)
-        # library(ggthemes)
-        # library(patchwork)
-        # library(scales)
-        # library(grid)
-        # library(readxl)
-        # library(plotly)
        str1 <- "Created by John Doll"
        str2 <- "Last Edited 12-01-2020"
        str3 <- "COVID Data from https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv"
@@ -225,18 +217,9 @@ server <- function(input, output) {
        str27 <- "tooltip customization: https://stackoverflow.com/questions/38733403/edit-labels-in-tooltip-for-plotly-maps-using-ggplot2-in-r"
        str28 <- "separator in paste function: https://r.789695.n4.nabble.com/paste-eliminate-spaces-td792315.html"
        str29 <- "outputting multiple lines in a shiny app: https://stackoverflow.com/questions/23233497/outputting-multiple-lines-of-text-with-rendertext-in-r-shiny"
-       HTML(paste(str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, str18, str19, str20, str21, str22, str23, str24, str25, str26, str27, str28, str29, sep = '<br><br>'))
-        #ggsave https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2/topics/ggsave
-        #as.symbol not aes_string https://stackoverflow.com/questions/35345782/shiny-passing-inputvar-to-aes-in-ggplot2
-        #input$tabselected https://stackoverflow.com/questions/38863215/how-do-i-access-print-track-the-current-tab-selection-in-a-shiny-app
-        #file download https://shiny.rstudio.com/articles/download.html
-        #ternary operator https://stackoverflow.com/questions/8790143/does-the-ternary-operator-exist-in-r
-        #get rid of legend for chlorpleth https://www.bing.com/search?q=get+rid+of+legend+in+plotly&FORM=AWRE
-        #limit decimal places plotly https://stackoverflow.com/questions/42141878/limit-decimal-places-in-variable-in-r
-        #renderplotly https://www.bing.com/search?FORM=U523DF&PC=U523&q=use+plotly+in+shiny+app
-        #many things here and there, mainly with axes and labels https://r-graphics.org/recipe-legend-title-text
-        #tooltip https://stackoverflow.com/questions/38733403/edit-labels-in-tooltip-for-plotly-maps-using-ggplot2-in-r
-        #separator in paste https://r.789695.n4.nabble.com/paste-eliminate-spaces-td792315.html
+       str30 <- "title case: https://stringr.tidyverse.org/reference/case.html"
+       str31 <- "no scientific notation: https://statisticsglobe.com/disable-exponential-scientific-notation-in-r"
+       HTML(paste(str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, str18, str19, str20, str21, str22, str23, str24, str25, str26, str27, str28, str29, str30, str31, sep = '<br><br>'))
     })
     
     output$downloadFile <- downloadHandler(
