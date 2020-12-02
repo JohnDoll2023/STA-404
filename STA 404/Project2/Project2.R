@@ -125,7 +125,8 @@ server <- function(input, output) {
             group_by(AgeFactor, OnsetDate) %>% 
             summarize(Cases = sum(`Case Count`),
                       Deaths = sum(`Death Due to Illness Count`, na.rm = TRUE),
-                      Hospitalizations = sum(`Hospitalized Count`, na.rm = TRUE)) })
+                      Hospitalizations = sum(`Hospitalized Count`, na.rm = TRUE),
+                      Population = `POPESTIMATE2019`) })
     
     #combine ohio state map and previously binded data set together so that data can be displayed on ohio map by county
     rateDB <-  reactive ({merge(ohio.county, combinedOhio, by.x = "County", by.y = "County") %>% 
@@ -177,10 +178,10 @@ server <- function(input, output) {
     })
     
     output$AgePlot <- renderPlot({
-        ggplot(data = ageDF(), aes_string(x = "OnsetDate" , y = input$mapvar, group = "AgeFactor", color = "AgeFactor")) +
+        ggplot(data = ageDF(), aes(x = OnsetDate , y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar), group = AgeFactor, color = AgeFactor)) +
             geom_ma(n = 7, linetype = 1, size = 1) +
             scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
-            labs(x = "Age", y = "Number of Cases", title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
+            labs(x = "Age", y = paste(if(input$rate) "Rate of" else "Number of" , input$mapvar), title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
             theme_minimal() +
             theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
     })
@@ -265,9 +266,9 @@ server <- function(input, output) {
         }
     )
     
-    output$check <- renderTable ({
-        view(ageDF())
-    })
+    # output$check <- renderTable ({
+    #     view(ageDF())
+    # })
 }
 
 # Run the application 
