@@ -88,7 +88,6 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-            tableOutput("check"),
             tabsetPanel (
                 tabPanel("Ohio Map", value = 1,
                          plotlyOutput("OhioPlot")),
@@ -115,8 +114,15 @@ server <- function(input, output) {
         group_by(OnsetDate) %>% 
         summarize(Cases = sum(`Case Count`),
                   Deaths = sum(`Death Due to Illness Count`, na.rm = TRUE),
-                  Hospitalizations = sum(`Hospitalized Count`, na.rm = TRUE),
-                  Population = `POPESTIMATE2019`) }) 
+                  Hospitalizations = sum(`Hospitalized Count`, na.rm = TRUE)) }) 
+    
+    ##Dataset of rates grouped by date of infection, created vars for number of cases, hospitalizations and for deaths, removed NA values, only for selected county
+    ohioCasesDF2 <- reactive ({ ohioDF %>% 
+            filter(County == input$county) %>% 
+            group_by(OnsetDate) %>% 
+            summarize(Cases = sum(`Case Count`/POPESTIMATE2019),
+                      Deaths = sum(`Death Due to Illness Count`/POPESTIMATE2019, na.rm = TRUE),
+                      Hospitalizations = sum(`Hospitalized Count`/POPESTIMATE2019, na.rm = TRUE)) }) 
 
     #Data set used for Age plot, filters for selected county and removes unknown age cases
     ageDF <- reactive ({ohioDF %>% 
@@ -155,13 +161,12 @@ server <- function(input, output) {
     })
     
     output$OhChartPlot <- renderPlot({
-        ggplot(data = ohioCasesDF(), aes(x = OnsetDate, y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar))) +
+        ggplot(data = if(input$rate) ohioCasesDF2() else ohioCasesDF(), aes_string(x = "OnsetDate", y = input$mapvar)) +
             geom_col(color = "blue") +
-            geom_ma(n = 7, linetype = 1, color = "red", size = 1) +
             scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
-            scale_fill_brewer() +
             theme(plot.title = element_text(hjust = 0.5), panel.background = element_blank(), plot.subtitle = element_text(hjust = 0.5, size = 20, color = "red")) +
-            labs(y = if(input$rate) paste("Rate of", if(input$mapvar == "Cases") "Infected (Infected/County Population)" else (if(input$mapvar == "Deaths") "Deaths (Deaths/County Population" else "Hospitalizations (Hospitalizations/County Population)")) else "", x = "", title = paste(input$mapvar, "in", input$county, "County"))
+            labs(y = if(input$rate) paste("Rate of", if(input$mapvar == "Cases") "Infected (Infected/County Population)" else (if(input$mapvar == "Deaths") "Deaths (Deaths/County Population" else "Hospitalizations (Hospitalizations/County Population)")) else "", x = "", title = paste(input$mapvar, "in", input$county, "County")) +
+            geom_ma(n = 7, linetype = 1, color = "red", size = 1)
     })
 
     output$CoChartPlot <- renderPlot({
@@ -228,10 +233,12 @@ server <- function(input, output) {
             #filters for which tab is currently selected so that correct data set can be downloaded
             if(input$tabselected==1) {
                 write.csv(rateDB(), file, row.names = FALSE)
-            } else if (input$tabselected==2) {
-                 write.csv(ohioRec(), file, row.names = FALSE)
+            } else if (input$tabselected==2 && !input$rate) {
+                 write.csv(ohioCasesDF(), file, row.names = FALSE)
+            } else if (input$tabselected==2 && input$rate) {
+                write.csv(ohioCasesDF2(), file, row.names = FALSE)
             } else if (input$tabselected==3) {
-                write.csv(ohioCountyDF(), file, row.names = FALSE)
+                write.csv(combinedOhio, file, row.names = FALSE)
             } else if (input$tabselected==4) {
                 write.csv(ageDF(), file, row.names = FALSE)
             }
@@ -258,13 +265,12 @@ server <- function(input, output) {
                            theme_map() +
                            theme(legend.position = "none"), device = "png", height = 6, width = 6)
             } else if (input$tabselected == 2) {
-                ggsave(file, plot = ggplot(data = ohioCasesDF(), aes_string(x = "OnsetDate", y = input$mapvar)) +
+                ggsave(file, plot = ggplot(data = if(input$rate) ohioCasesDF2() else ohioCasesDF(), aes_string(x = "OnsetDate", y = input$mapvar)) +
                            geom_col(color = "blue") +
-                           geom_ma(n = 7, linetype = 1, color = "red", size = 1) +
                            scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
-                           scale_fill_brewer() +
                            theme(plot.title = element_text(hjust = 0.5), panel.background = element_blank(), plot.subtitle = element_text(hjust = 0.5, size = 20, color = "red")) +
-                           labs(y = "", x = "", title = paste(input$mapvar, "in", input$county, "County")), device = "png", height = 6, width = 6)
+                           labs(y = if(input$rate) paste("Rate of", if(input$mapvar == "Cases") "Infected (Infected/County Population)" else (if(input$mapvar == "Deaths") "Deaths (Deaths/County Population" else "Hospitalizations (Hospitalizations/County Population)")) else "", x = "", title = paste(input$mapvar, "in", input$county, "County")) +
+                           geom_ma(n = 7, linetype = 1, color = "red", size = 1), device = "png", height = 6, width = 6)
             } else if (input$tabselected == 3) {
                 ggsave(file, plot = ggplot(data = combinedOhio[tail(order((if(input$rate) (if(input$mapvar == "Cases") combinedOhio$ncases else (if(input$mapvar == "Deaths") combinedOhio$ndead else combinedOhio$nhos))/combinedOhio$countyPop else (if(input$mapvar == "Cases") combinedOhio$ncases else (if(input$mapvar == "Deaths") combinedOhio$ndead else combinedOhio$nhos)))), 20), ],
                                            aes(x = if(input$rate) ((if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos))/countyPop) else (if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos)),
@@ -274,21 +280,18 @@ server <- function(input, output) {
                            scale_fill_brewer() +
                            guides(fill = FALSE) +
                            theme(plot.title = element_text(hjust = 0.5), panel.background = element_blank(), plot.subtitle = element_text(hjust = 0.5)) +
-                           labs(y = paste(input$mapvar), x = "County", title = paste(input$mapvar, "Count"), subtitle = paste("Shading based on total", input$mapvar)), device = "png", height = 6, width = 6)
+                           labs(y = "County", x = paste(input$mapvar, if(input$rate) "Rate"), title = paste(input$mapvar, "Count"), subtitle = paste("Shading based on total", input$mapvar)), device = "png", height = 6, width = 6)
             } else if (input$tabselected == 4) {
-                ggsave(file, plot = ggplot(data = ageDF(), aes(x = OnsetDate , y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar), group = AgeFactor, color = AgeFactor)) +
+                ggsave(file, plot = ggplot(data = ageDF(), aes(x = OnsetDate , y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar), group = AgeFactor)) +
+                           facet_wrap(~AgeFactor) +
                            geom_ma(n = 7, linetype = 1, size = 1) +
-                           scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
+                           scale_x_date(breaks = datebreaks, labels = date_format("%m/%d")) +
                            labs(x = "Age", y = paste(if(input$rate) "Rate of" else "Number of", input$mapvar), title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
                            theme_minimal() +
                            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()), device = "png", height = 6, width = 6)
             }
         }
     )
-    
-    # output$check <- renderTable ({
-    #     view(ohioCasesDF())
-    # })
 }
 
 # Run the application 
