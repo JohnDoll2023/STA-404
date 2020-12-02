@@ -212,14 +212,24 @@ server <- function(input, output) {
        str14 <- "scales: 	Hadley Wickham and Dana Seidel (2020). scales: Scale Functions for Visualization. R package version 1.1.1. https://CRAN.R-project.org/package=scales"
        str15 <- "grid: 		R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/."
        str16 <- "plotly: C. Sievert. Interactive Web-Based Data Visualization with R, plotly, and shiny. Chapman and Hall/CRC Florida, 2020."
-       str17 <- ""
-       str18 <- ""
-       HTML(paste(str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, str18, sep = '<br><br>'))
-        #ggsaave https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2/topics/ggsave
+       str17 <- "Internet help sources:"
+       str18 <- "ggsave: https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2/topics/ggsave"
+       str19 <- "!!as.symbol for when not using aes_string: https://stackoverflow.com/questions/35345782/shiny-passing-inputvar-to-aes-in-ggplot2"
+       str20 <- "how to reference selected tab: https://stackoverflow.com/questions/38863215/how-do-i-access-print-track-the-current-tab-selection-in-a-shiny-app"
+       str21 <- "downloading a file: https://shiny.rstudio.com/articles/download.html"
+       str22 <- "ternary operator in R: https://stackoverflow.com/questions/8790143/does-the-ternary-operator-exist-in-r"
+       str23 <- "get rid of legend for chlorpleth: https://www.bing.com/search?q=get+rid+of+legend+in+plotly&FORM=AWRE"
+       str24 <- "limit decimal places plotly: https://stackoverflow.com/questions/42141878/limit-decimal-places-in-variable-in-r"
+       str25 <- "some renderplotly help: https://www.bing.com/search?FORM=U523DF&PC=U523&q=use+plotly+in+shiny+app"
+       str26 <- "many things here and there, mainly with axes and labels: https://r-graphics.org/recipe-legend-title-text"
+       str27 <- "tooltip customization: https://stackoverflow.com/questions/38733403/edit-labels-in-tooltip-for-plotly-maps-using-ggplot2-in-r"
+       str28 <- "separator in paste function: https://r.789695.n4.nabble.com/paste-eliminate-spaces-td792315.html"
+       str29 <- "outputting multiple lines in a shiny app: https://stackoverflow.com/questions/23233497/outputting-multiple-lines-of-text-with-rendertext-in-r-shiny"
+       HTML(paste(str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, str18, str19, str20, str21, str22, str23, str24, str25, str26, str27, str28, str29, sep = '<br><br>'))
+        #ggsave https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2/topics/ggsave
         #as.symbol not aes_string https://stackoverflow.com/questions/35345782/shiny-passing-inputvar-to-aes-in-ggplot2
         #input$tabselected https://stackoverflow.com/questions/38863215/how-do-i-access-print-track-the-current-tab-selection-in-a-shiny-app
         #file download https://shiny.rstudio.com/articles/download.html
-        #nrec https://www.statology.org/conditional-mutating-r/
         #ternary operator https://stackoverflow.com/questions/8790143/does-the-ternary-operator-exist-in-r
         #get rid of legend for chlorpleth https://www.bing.com/search?q=get+rid+of+legend+in+plotly&FORM=AWRE
         #limit decimal places plotly https://stackoverflow.com/questions/42141878/limit-decimal-places-in-variable-in-r
