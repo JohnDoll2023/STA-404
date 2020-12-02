@@ -18,7 +18,6 @@ library(ggthemes)
 library(patchwork)
 library(scales)
 library(grid)
-library(readxl)
 library(plotly)
 
 #Loading in state map and extracting just ohio with counties
@@ -100,7 +99,7 @@ ui <- fluidPage(
                 tabPanel("Age Charts", value =4,
                          plotOutput("AgePlot")),
                 tabPanel("Acknowledgements", value =5,
-                         textOutput("Acknowledgements")),
+                         htmlOutput("Acknowledgements")),
                 id = "tabselected"
             )
         )
@@ -174,20 +173,48 @@ server <- function(input, output) {
             scale_fill_brewer() +
             guides(fill = FALSE) +
             theme(plot.title = element_text(hjust = 0.5), panel.background = element_blank(), plot.subtitle = element_text(hjust = 0.5)) +
-            labs(y = paste(input$mapvar), x = "County", title = paste(input$mapvar, "Count"), subtitle = paste("Shading based on total", input$mapvar))
+            labs(y = "County", x = paste(input$mapvar, if(input$rate) "Rate"), title = paste(input$mapvar, "Count"), subtitle = paste("Shading based on total", input$mapvar))
     })
     
     output$AgePlot <- renderPlot({
         ggplot(data = ageDF(), aes(x = OnsetDate , y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar), group = AgeFactor, color = AgeFactor)) +
             geom_ma(n = 7, linetype = 1, size = 1) +
             scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
-            labs(x = "Age", y = paste(if(input$rate) "Rate of" else "Number of" , input$mapvar), title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
+            labs(x = "Age", y = paste(if(input$rate) "Rate of" else "Number of", input$mapvar), title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
             theme_minimal() +
             theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
     })
     
-    output$Acknowledgements <- renderText({
-       "Created by John Doll\nLast Edited 11-25-2020\nSources:\n\tR Studio"
+    output$Acknowledgements <- renderUI({
+        # library(shiny)
+        # library(lubridate)
+        # library(tidyquant)
+        # library(tidyverse)
+        # library(ggthemes)
+        # library(patchwork)
+        # library(scales)
+        # library(grid)
+        # library(readxl)
+        # library(plotly)
+       str1 <- "Created by John Doll"
+       str2 <- "Last Edited 12-01-2020"
+       str3 <- "COVID Data from https://coronavirus.ohio.gov/static/dashboards/COVIDSummaryData.csv"
+       str4 <- "Ohio Population data from https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv"
+       str5 <- "Citations: "
+       str6 <- "R:  R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/."
+       str7 <- "Libraries:"
+       str8 <- "shiny: Winston Chang, Joe Cheng, JJ Allaire, Yihui Xie and Jonathan McPherson (2020). shiny: Web Application Framework for R. R package version 1.5.0.https://CRAN.R-project.org/package=shiny"
+       str9 <- "lubridate: Garrett Grolemund, Hadley Wickham (2011). Dates and Times Made Easy with lubridate. Journal of Statistical Software, 40(3), 1-25. URLhttp://www.jstatsoft.org/v40/i03/."
+       str10 <- "tidyquant: Matt Dancho and Davis Vaughan (2020). tidyquant: Tidy Quantitative Financial Analysis. R package version 1.0.1. https://CRAN.R-project.org/package=tidyquant"
+       str11 <- "tidyverse: Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, https://doi.org/10.21105/joss.01686"
+       str12 <- "ggthemes: 	Jeffrey B. Arnold (2019). ggthemes: Extra Themes, Scales and Geoms for 'ggplot2'. R package version 4.2.0. https://CRAN.R-project.org/package=ggthemes"
+       str13 <- "patchwork: 	Thomas Lin Pedersen (2020). patchwork: The Composer of Plots. R package version 1.0.1. https://CRAN.R-project.org/package=patchwork"
+       str14 <- "scales: 	Hadley Wickham and Dana Seidel (2020). scales: Scale Functions for Visualization. R package version 1.1.1. https://CRAN.R-project.org/package=scales"
+       str15 <- "grid: 		R Core Team (2020). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. https://www.R-project.org/."
+       str16 <- "plotly: C. Sievert. Interactive Web-Based Data Visualization with R, plotly, and shiny. Chapman and Hall/CRC Florida, 2020."
+       str17 <- ""
+       str18 <- ""
+       HTML(paste(str1, str2, str3, str4, str5, str6, str7, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, str18, sep = '<br><br>'))
         #ggsaave https://www.rdocumentation.org/packages/ggplot2/versions/3.3.2/topics/ggsave
         #as.symbol not aes_string https://stackoverflow.com/questions/35345782/shiny-passing-inputvar-to-aes-in-ggplot2
         #input$tabselected https://stackoverflow.com/questions/38863215/how-do-i-access-print-track-the-current-tab-selection-in-a-shiny-app
@@ -246,20 +273,20 @@ server <- function(input, output) {
                            theme(plot.title = element_text(hjust = 0.5), panel.background = element_blank(), plot.subtitle = element_text(hjust = 0.5, size = 20, color = "red")) +
                            labs(y = "", x = "", title = paste(input$mapvar, "in", input$county, "County")), device = "png", height = 6, width = 6)
             } else if (input$tabselected == 3) {
-                ggsave(file, plot = ggplot(data = ohioCountyDF[tail(order(if(input$mapvar == "Cases") ohioCountyDF$ncases else (if(input$mapvar == "Deaths") ohioCountyDF$ndead else ohioCountyDF$nhos)), 20), ],
-                                           aes(x = if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos),
-                                               y = reorder(County, -if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos)),
+                ggsave(file, plot = ggplot(data = combinedOhio[tail(order((if(input$rate) (if(input$mapvar == "Cases") combinedOhio$ncases else (if(input$mapvar == "Deaths") combinedOhio$ndead else combinedOhio$nhos))/combinedOhio$countyPop else (if(input$mapvar == "Cases") combinedOhio$ncases else (if(input$mapvar == "Deaths") combinedOhio$ndead else combinedOhio$nhos)))), 20), ],
+                                           aes(x = if(input$rate) ((if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos))/countyPop) else (if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos)),
+                                               y = reorder(County, -if(input$rate) ((if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos))/countyPop) else (if(input$mapvar == "Cases") ncases else (if(input$mapvar == "Deaths") ndead else nhos))),
                                                fill = !!as.symbol(input$mapvar))) +
                            geom_col() +
                            scale_fill_brewer() +
                            guides(fill = FALSE) +
-                           theme(plot.title = element_text(hjust = 0.5), panel.background = element_blank()) +
-                           labs(y = paste(input$mapvar), x = "County", title = paste(input$mapvar, "Count")), device = "png", height = 6, width = 6)
+                           theme(plot.title = element_text(hjust = 0.5), panel.background = element_blank(), plot.subtitle = element_text(hjust = 0.5)) +
+                           labs(y = paste(input$mapvar), x = "County", title = paste(input$mapvar, "Count"), subtitle = paste("Shading based on total", input$mapvar)), device = "png", height = 6, width = 6)
             } else if (input$tabselected == 4) {
-                ggsave(file, plot = ggplot(data = ageDF(), aes_string(x = "OnsetDate" , y = input$mapvar, group = "AgeFactor", color = "AgeFactor")) +
+                ggsave(file, plot = ggplot(data = ageDF(), aes(x = OnsetDate , y = if(input$rate) !!as.symbol(input$mapvar)/Population else !!as.symbol(input$mapvar), group = AgeFactor, color = AgeFactor)) +
                            geom_ma(n = 7, linetype = 1, size = 1) +
                            scale_x_date(breaks = datebreaks, labels = date_format("%b %d")) +
-                           labs(x = "Age", y = "Number of Cases", title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
+                           labs(x = "Age", y = paste(if(input$rate) "Rate of" else "Number of", input$mapvar), title = paste(input$mapvar, "by Age for", input$county, "County"), color = "Age") +
                            theme_minimal() +
                            theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()), device = "png", height = 6, width = 6)
             }
@@ -267,7 +294,7 @@ server <- function(input, output) {
     )
     
     # output$check <- renderTable ({
-    #     view(ageDF())
+    #     view(ohioCasesDF())
     # })
 }
 
